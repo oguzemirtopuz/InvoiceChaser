@@ -17,9 +17,7 @@ export default function RulesPage() {
       prev.map((r) => {
         if (r.id === id) {
           const newState = !r.enabled;
-          toast.success(
-            `${r.name} kuralı ${newState ? 'etkinleştirildi' : 'devre dışı bırakıldı'}.`
-          );
+          toast.success(t.rules.toastToggled(r.name, newState));
           return { ...r, enabled: newState };
         }
         return r;
@@ -43,7 +41,7 @@ export default function RulesPage() {
 
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
           <ShieldCheck className="w-4 h-4" />
-          <span>Kademeli Akıllı Koruma Aktif</span>
+          <span>{t.rules.badgeActive}</span>
         </div>
       </div>
 
@@ -59,10 +57,10 @@ export default function RulesPage() {
         <CheckCircle2 className="w-6 h-6 text-indigo-400 flex-shrink-0 mt-0.5" />
         <div className="text-sm">
           <h4 className="font-bold text-white mb-1">
-            Nasıl Çalışır?
+            {t.rules.howItWorksTitle}
           </h4>
           <p className="text-slate-400 leading-relaxed">
-            Cron servisi her gün sabah saat 09:00'da çalışır. Vadesi gelen faturalar için yukarıda aktif olan kurallara göre yapay zeka tarafından özelleştirilmiş e-postalar otomatik olarak müşterilerinize gönderilir. Müşteri ödeme yaptığında hatırlatma serisi anında sonlanır.
+            {t.rules.howItWorksDesc}
           </p>
         </div>
       </div>

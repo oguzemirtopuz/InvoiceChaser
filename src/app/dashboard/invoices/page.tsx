@@ -46,16 +46,16 @@ export default function InvoicesPage() {
         inv.id === id ? { ...inv, status: 'paid', paidAt: new Date().toISOString() } : inv
       )
     );
-    toast.success('Fatura ödendi olarak işaretlendi.');
+    toast.success(t.invoices.toasts.markedPaid);
   };
 
   const handleDelete = (id: string) => {
     setInvoices((prev) => prev.filter((inv) => inv.id !== id));
-    toast.success('Fatura silindi.');
+    toast.success(t.invoices.toasts.deleted);
   };
 
   const handleSendReminder = (inv: Invoice) => {
-    toast.info(`AI Hatırlatma e-postası ${inv.clientEmail} adresine kuyruğa alındı.`);
+    toast.info(`${t.invoices.toasts.reminderQueued} (${inv.clientEmail})`);
   };
 
   const handleAddInvoice = (newInv: Invoice) => {
@@ -63,7 +63,15 @@ export default function InvoicesPage() {
   };
 
   const handleExportCSV = () => {
-    const headers = ['Fatura No', 'Musteri', 'Email', 'Tutar', 'Para Birimi', 'Vade', 'Durum'];
+    const headers = [
+      t.invoices.table.invoiceNo,
+      t.invoices.table.client,
+      'Email',
+      t.invoices.table.amount,
+      'Currency',
+      t.invoices.table.dueDate,
+      t.invoices.table.status,
+    ];
     const rows = filteredInvoices.map((i) => [
       i.invoiceNo,
       i.clientName,
@@ -81,11 +89,11 @@ export default function InvoicesPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `faturalar_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `invoices_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('CSV dosyası indirildi.');
+    toast.success(t.invoices.toasts.csvExported);
   };
 
   return (
@@ -142,10 +150,10 @@ export default function InvoicesPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500 font-semibold"
           >
-            <option value="all">Tüm Durumlar ({invoices.length})</option>
-            <option value="upcoming">Vadesi Yaklaşanlar</option>
-            <option value="overdue">Gecikmedekiler</option>
-            <option value="paid">Ödenenler</option>
+            <option value="all">{t.invoices.filters.all} ({invoices.length})</option>
+            <option value="upcoming">{t.invoices.filters.upcoming}</option>
+            <option value="overdue">{t.invoices.filters.overdue}</option>
+            <option value="paid">{t.invoices.filters.paid}</option>
           </select>
         </div>
       </div>
@@ -188,11 +196,11 @@ export default function InvoicesPage() {
                         {inv.status === 'paid' ? (
                           <span className="text-slate-500">—</span>
                         ) : daysLeft > 0 ? (
-                          <span className="text-indigo-400">{daysLeft} gün kaldı</span>
+                          <span className="text-indigo-400">{daysLeft} {t.invoices.days.left}</span>
                         ) : daysLeft === 0 ? (
-                          <span className="text-amber-400">Bugün son gün</span>
+                          <span className="text-amber-400">{t.invoices.days.today}</span>
                         ) : (
-                          <span className="text-rose-400 font-bold">{Math.abs(daysLeft)} gün gecikti</span>
+                          <span className="text-rose-400 font-bold">{Math.abs(daysLeft)} {t.invoices.days.overdue}</span>
                         )}
                       </td>
                       <td className="py-3.5 px-4">

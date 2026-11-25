@@ -81,7 +81,7 @@ export function SimulatorPanel({ invoices }: SimulatorPanelProps) {
     const fullText = `Subject: ${result.subject}\n\n${result.body}`;
     navigator.clipboard.writeText(fullText);
     setCopied(true);
-    toast.success('Panoya kopyalandı');
+    toast.success(t.simulator.copied);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -133,13 +133,13 @@ export function SimulatorPanel({ invoices }: SimulatorPanelProps) {
                 }`}
               >
                 <div className="text-xs font-bold uppercase tracking-wider">
-                  Kademe {tier}
+                  {t.simulator.tierPrefix} {tier}
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5 truncate">
-                  {tier === 1 && 'Vadeden 3 gün önce'}
-                  {tier === 2 && 'Vade günü'}
-                  {tier === 3 && 'Gecikme 3. gün'}
-                  {tier === 4 && 'Gecikme 7+ gün'}
+                  {tier === 1 && t.rules.tiers.tier1.timing}
+                  {tier === 2 && t.rules.tiers.tier2.timing}
+                  {tier === 3 && t.rules.tiers.tier3.timing}
+                  {tier === 4 && t.rules.tiers.tier4.timing}
                 </div>
               </button>
             ))}
@@ -183,7 +183,7 @@ export function SimulatorPanel({ invoices }: SimulatorPanelProps) {
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Send className="w-3.5 h-3.5 text-indigo-400" />
-              <span>E-posta Önizleme</span>
+              <span>{t.simulator.previewTitle}</span>
             </span>
             {result && (
               <button
@@ -192,7 +192,7 @@ export function SimulatorPanel({ invoices }: SimulatorPanelProps) {
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Kopyalandı' : 'Kopyala'}</span>
+                <span>{copied ? t.simulator.copied : t.simulator.copy}</span>
               </button>
             )}
           </div>
@@ -226,8 +226,8 @@ export function SimulatorPanel({ invoices }: SimulatorPanelProps) {
         </div>
 
         <div className="pt-4 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between">
-          <span>Model: Gemini 1.5 Flash</span>
-          <span>Bilingual i18n Motoru</span>
+          <span>{t.simulator.modelLabel}</span>
+          <span>{t.simulator.engineLabel}</span>
         </div>
       </div>
     </div>

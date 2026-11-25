@@ -37,7 +37,7 @@ export function AddInvoiceModal({ isOpen, onClose, onAdd }: AddInvoiceModalProps
 
     const numAmount = parseFloat(form.amount);
     if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error('Geçerli bir tutar girin');
+      toast.error(t.common.error);
       return;
     }
 

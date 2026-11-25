@@ -40,7 +40,7 @@ export default function DashboardOverviewPage() {
         inv.id === id ? { ...inv, status: 'paid', paidAt: new Date().toISOString() } : inv
       )
     );
-    toast.success('Fatura ödendi olarak işaretlendi. Hatırlatmalar durduruldu.');
+    toast.success(t.invoices.toasts.markedPaid);
   };
 
   const handleAddInvoice = (newInv: Invoice) => {
@@ -84,7 +84,7 @@ export default function DashboardOverviewPage() {
         <MetricCard
           label={t.dashboard.overview.metrics.totalInvoices}
           value={totalCount}
-          change="+2 bu hafta"
+          change={t.dashboard.overview.changes.thisWeek}
           trend="up"
           accent="indigo"
           icon={<Receipt className="w-5 h-5 text-indigo-400" />}
@@ -92,7 +92,7 @@ export default function DashboardOverviewPage() {
         <MetricCard
           label={t.dashboard.overview.metrics.pendingAmount}
           value={formatAmount(pendingAmount, 'TRY')}
-          change="Bekleyen tahsilat"
+          change={t.dashboard.overview.changes.pendingCollection}
           trend="neutral"
           accent="amber"
           icon={<DollarSign className="w-5 h-5 text-amber-400" />}
@@ -100,7 +100,7 @@ export default function DashboardOverviewPage() {
         <MetricCard
           label={t.dashboard.overview.metrics.overdueCount}
           value={overdueCount}
-          change={overdueCount > 0 ? 'Müdahale gerekebilir' : 'Temiz'}
+          change={overdueCount > 0 ? t.dashboard.overview.changes.interventionNeeded : t.dashboard.overview.changes.allClean}
           trend={overdueCount > 0 ? 'down' : 'up'}
           accent="rose"
           icon={<AlertTriangle className="w-5 h-5 text-rose-400" />}
@@ -108,7 +108,7 @@ export default function DashboardOverviewPage() {
         <MetricCard
           label={t.dashboard.overview.metrics.collectionRate}
           value={`%${collectionRate}`}
-          change="+8% artış"
+          change={t.dashboard.overview.changes.rateIncrease}
           trend="up"
           accent="emerald"
           icon={<CheckCircle2 className="w-5 h-5 text-emerald-400" />}
@@ -172,7 +172,7 @@ export default function DashboardOverviewPage() {
                         <span>{t.invoices.actions.markPaid}</span>
                       </button>
                     ) : (
-                      <span className="text-xs text-slate-500">Tamamlandı</span>
+                      <span className="text-xs text-slate-500">{t.dashboard.overview.completed}</span>
                     )}
                   </td>
                 </tr>

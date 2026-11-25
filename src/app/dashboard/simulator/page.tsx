@@ -35,7 +35,7 @@ export default function SimulatorPage() {
       <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-xs text-slate-400 flex items-center gap-3">
         <Info className="w-4 h-4 text-indigo-400 flex-shrink-0" />
         <span>
-          Bu simülatör, faturanın durumuna ve seçilen kademeye göre yapay zekanın üreteceği hatırlatma e-postasını ve yanıt gecikmesini test etmenizi sağlar.
+          {t.simulator.notice}
         </span>
       </div>
 

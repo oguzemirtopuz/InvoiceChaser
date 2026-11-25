@@ -129,9 +129,9 @@ export default function SettingsPage() {
               onChange={(e) => setSettings({ ...settings, reminderTone: e.target.value as ReminderTone })}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 font-semibold"
             >
-              <option value="gentle">{t.settings.toneOptions.gentle} (Kibar ve anlayışlı)</option>
-              <option value="professional">{t.settings.toneOptions.professional} (Standart kurumsal)</option>
-              <option value="firm">{t.settings.toneOptions.firm} (Kesin ve net)</option>
+              <option value="gentle">{t.settings.toneOptions.gentle}</option>
+              <option value="professional">{t.settings.toneOptions.professional}</option>
+              <option value="firm">{t.settings.toneOptions.firm}</option>
             </select>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function SettingsPage() {
             className="px-6 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all disabled:opacity-50"
           >
             <Check className="w-4 h-4" />
-            <span>{saving ? 'Kaydediliyor...' : t.settings.save}</span>
+            <span>{saving ? t.settings.saving : t.settings.save}</span>
           </button>
         </div>
       </form>

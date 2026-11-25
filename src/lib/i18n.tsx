@@ -4,10 +4,10 @@ import React, { createContext, useContext, useState, useCallback, useEffect, Rea
 import type { Language } from '@/lib/types';
 
 // ============================================================
-// Sözlük Tipi
+// Sözlük Tipi (Exhaustive & 100% Typed)
 // ============================================================
 
-interface Dictionary {
+export interface Dictionary {
   landing: {
     hero: { title: string; subtitle: string; cta: string; secondaryCta: string };
     features: {
@@ -32,7 +32,11 @@ interface Dictionary {
         totalInvoices: string; pendingAmount: string;
         overdueCount: string; collectionRate: string;
       };
-      recentInvoices: string; viewAll: string;
+      recentInvoices: string; viewAll: string; completed: string;
+      changes: {
+        thisWeek: string; pendingCollection: string;
+        interventionNeeded: string; allClean: string; rateIncrease: string;
+      };
     };
   };
   invoices: {
@@ -42,6 +46,7 @@ interface Dictionary {
       dueDate: string; daysRemaining: string; status: string; actions: string;
     };
     status: { paid: string; upcoming: string; overdue: string; pending: string };
+    filters: { all: string; upcoming: string; overdue: string; paid: string };
     modal: {
       title: string; clientName: string; clientEmail: string;
       invoiceNo: string; amount: string; currency: string;
@@ -50,9 +55,18 @@ interface Dictionary {
     actions: { markPaid: string; sendReminder: string; delete: string };
     empty: string;
     days: { left: string; overdue: string; today: string };
+    toasts: {
+      markedPaid: string; deleted: string; reminderQueued: string; csvExported: string;
+    };
   };
   rules: {
     title: string; subtitle: string;
+    badgeActive: string;
+    tierPrefix: string;
+    statusActive: string;
+    statusPassive: string;
+    howItWorksTitle: string;
+    howItWorksDesc: string;
     tiers: {
       tier1: { name: string; description: string; timing: string };
       tier2: { name: string; description: string; timing: string };
@@ -60,13 +74,19 @@ interface Dictionary {
       tier4: { name: string; description: string; timing: string };
     };
     enable: string; disable: string;
+    toastToggled: (name: string, enabled: boolean) => string;
   };
   simulator: {
     title: string; subtitle: string;
+    notice: string;
     selectInvoice: string; selectTier: string;
     generateReminder: string; generatedSubject: string;
     generatedBody: string; generating: string;
     latency: string; noInvoiceSelected: string;
+    previewTitle: string; copy: string; copied: string;
+    tierPrefix: string;
+    modelLabel: string;
+    engineLabel: string;
   };
   settings: {
     title: string; subtitle: string;
@@ -74,7 +94,7 @@ interface Dictionary {
     iban: string; paymentLink: string; emailSignature: string;
     defaultCurrency: string; reminderTone: string;
     toneOptions: { gentle: string; professional: string; firm: string };
-    save: string; saved: string;
+    save: string; saved: string; saving: string;
   };
   common: {
     search: string; filter: string; export: string;
@@ -82,6 +102,7 @@ interface Dictionary {
     edit: string; close: string; back: string;
     loading: string; error: string; success: string;
     confirm: string; yes: string; no: string;
+    signIn: string;
   };
 }
 
@@ -127,7 +148,7 @@ const tr: Dictionary = {
       rules: 'Hatırlatma Kuralları',
       simulator: 'AI Simülatör',
       settings: 'Ayarlar',
-      logout: 'Çıkış',
+      logout: 'Çıkış Yap',
     },
     topbar: {
       welcome: 'Hoş geldiniz',
@@ -135,7 +156,7 @@ const tr: Dictionary = {
     },
     overview: {
       title: 'Genel Bakış',
-      subtitle: 'Alacak durumunuzun özeti.',
+      subtitle: 'Alacak durumunuzun anlık özeti.',
       metrics: {
         totalInvoices: 'Toplam Fatura',
         pendingAmount: 'Bekleyen Tutar',
@@ -144,6 +165,14 @@ const tr: Dictionary = {
       },
       recentInvoices: 'Son Faturalar',
       viewAll: 'Tümünü Gör',
+      completed: 'Tamamlandı',
+      changes: {
+        thisWeek: '+2 bu hafta',
+        pendingCollection: 'Bekleyen tahsilat',
+        interventionNeeded: 'Müdahale gerekebilir',
+        allClean: 'Tümü güncel',
+        rateIncrease: '+8% artış',
+      },
     },
   },
   invoices: {
@@ -165,6 +194,12 @@ const tr: Dictionary = {
       overdue: 'Gecikmede',
       pending: 'Beklemede',
     },
+    filters: {
+      all: 'Tüm Durumlar',
+      upcoming: 'Vadesi Yaklaşanlar',
+      overdue: 'Gecikmedekiler',
+      paid: 'Ödenenler',
+    },
     modal: {
       title: 'Yeni Fatura Ekle',
       clientName: 'Müşteri Adı',
@@ -185,13 +220,25 @@ const tr: Dictionary = {
     empty: 'Henüz fatura bulunmuyor. İlk faturanızı ekleyin!',
     days: {
       left: 'gün kaldı',
-      overdue: 'gün gecikmiş',
-      today: 'Bugün vadesi',
+      overdue: 'gün gecikti',
+      today: 'Bugün son gün',
+    },
+    toasts: {
+      markedPaid: 'Fatura ödendi olarak işaretlendi. Hatırlatmalar durduruldu.',
+      deleted: 'Fatura başarıyla silindi.',
+      reminderQueued: 'AI hatırlatma e-postası kuyruğa alındı.',
+      csvExported: 'CSV dosyası başarıyla indirildi.',
     },
   },
   rules: {
     title: 'Hatırlatma Kuralları',
     subtitle: 'Kademeli hatırlatma zamanlamasını yapılandırın.',
+    badgeActive: 'Kademeli Akıllı Koruma Aktif',
+    tierPrefix: 'Kademe',
+    statusActive: 'Aktif',
+    statusPassive: 'Pasif',
+    howItWorksTitle: 'Nasıl Çalışır?',
+    howItWorksDesc: 'Cron servisi her gün çalışır. Vadesi gelen faturalar için yukarıda aktif olan kurallara göre yapay zeka tarafından özelleştirilmiş e-postalar otomatik olarak müşterilerinize gönderilir. Müşteri ödeme yaptığında hatırlatma serisi anında sonlanır.',
     tiers: {
       tier1: { name: 'Nazik Hatırlatma', description: 'Vadeden önce planlama odaklı, nazik bir ön bilgilendirme.', timing: 'Vadeden 3 gün önce' },
       tier2: { name: 'Vade Günü Hatırlatması', description: 'Samimi, ödeme bağlantısını doğrudan sunan hatırlatma.', timing: 'Vade günü' },
@@ -200,10 +247,12 @@ const tr: Dictionary = {
     },
     enable: 'Etkinleştir',
     disable: 'Devre Dışı Bırak',
+    toastToggled: (name, enabled) => `${name} kuralı ${enabled ? 'etkinleştirildi' : 'devre dışı bırakıldı'}.`,
   },
   simulator: {
     title: 'AI Hatırlatma Simülatörü',
     subtitle: 'Yapay zekanın kademeli hatırlatma e-postalarını canlı test edin.',
+    notice: 'Bu simülatör, faturanın durumuna ve seçilen kademeye göre yapay zekanın üreteceği hatırlatma e-postasını ve yanıt gecikmesini test etmenizi sağlar.',
     selectInvoice: 'Fatura seçin',
     selectTier: 'Kademe seçin',
     generateReminder: 'Hatırlatma Oluştur',
@@ -212,6 +261,12 @@ const tr: Dictionary = {
     generating: 'AI üretiyor...',
     latency: 'Yanıt süresi',
     noInvoiceSelected: 'Lütfen bir fatura ve kademe seçin.',
+    previewTitle: 'E-posta Önizleme',
+    copy: 'Kopyala',
+    copied: 'Kopyalandı',
+    tierPrefix: 'Kademe',
+    modelLabel: 'Model: Gemini 1.5 Flash',
+    engineLabel: 'Çift Dilli AI Motoru',
   },
   settings: {
     title: 'Ayarlar',
@@ -223,9 +278,14 @@ const tr: Dictionary = {
     emailSignature: 'E-posta İmzası',
     defaultCurrency: 'Varsayılan Para Birimi',
     reminderTone: 'Hatırlatma Üslubu',
-    toneOptions: { gentle: 'Nazik', professional: 'Profesyonel', firm: 'Resmi' },
+    toneOptions: {
+      gentle: 'Nazik (Kibar ve anlayışlı)',
+      professional: 'Profesyonel (Standart kurumsal)',
+      firm: 'Resmi (Kesin ve net)',
+    },
     save: 'Kaydet',
-    saved: 'Kaydedildi!',
+    saved: 'Ayarlar başarıyla kaydedildi!',
+    saving: 'Kaydediliyor...',
   },
   common: {
     search: 'Ara',
@@ -243,6 +303,7 @@ const tr: Dictionary = {
     confirm: 'Emin misiniz?',
     yes: 'Evet',
     no: 'Hayır',
+    signIn: 'Giriş Yap',
   },
 };
 
@@ -296,7 +357,7 @@ const en: Dictionary = {
     },
     overview: {
       title: 'Overview',
-      subtitle: 'Your receivables at a glance.',
+      subtitle: 'Real-time overview of your receivables.',
       metrics: {
         totalInvoices: 'Total Invoices',
         pendingAmount: 'Pending Amount',
@@ -305,6 +366,14 @@ const en: Dictionary = {
       },
       recentInvoices: 'Recent Invoices',
       viewAll: 'View All',
+      completed: 'Completed',
+      changes: {
+        thisWeek: '+2 this week',
+        pendingCollection: 'Pending collection',
+        interventionNeeded: 'Action required',
+        allClean: 'All up to date',
+        rateIncrease: '+8% increase',
+      },
     },
   },
   invoices: {
@@ -325,6 +394,12 @@ const en: Dictionary = {
       upcoming: 'Upcoming',
       overdue: 'Overdue',
       pending: 'Pending',
+    },
+    filters: {
+      all: 'All Statuses',
+      upcoming: 'Upcoming',
+      overdue: 'Overdue',
+      paid: 'Paid',
     },
     modal: {
       title: 'Add New Invoice',
@@ -349,10 +424,22 @@ const en: Dictionary = {
       overdue: 'days overdue',
       today: 'Due today',
     },
+    toasts: {
+      markedPaid: 'Invoice marked as paid. Reminder sequence stopped.',
+      deleted: 'Invoice deleted successfully.',
+      reminderQueued: 'AI reminder email queued for dispatch.',
+      csvExported: 'CSV file downloaded successfully.',
+    },
   },
   rules: {
     title: 'Reminder Rules',
     subtitle: 'Configure your progressive reminder timing.',
+    badgeActive: 'Progressive Smart Protection Active',
+    tierPrefix: 'Tier',
+    statusActive: 'Active',
+    statusPassive: 'Disabled',
+    howItWorksTitle: 'How It Works',
+    howItWorksDesc: 'The cron service executes daily. Invoices reaching their milestone triggers automatically receive AI-crafted emails matching the active rules above. Once settled, sequences halt instantly.',
     tiers: {
       tier1: { name: 'Gentle Reminder', description: 'A polite heads-up focused on planning before the due date.', timing: '3 days before due' },
       tier2: { name: 'Due Date Reminder', description: 'Friendly reminder with a direct payment link.', timing: 'On due date' },
@@ -361,10 +448,12 @@ const en: Dictionary = {
     },
     enable: 'Enable',
     disable: 'Disable',
+    toastToggled: (name, enabled) => `Rule "${name}" has been ${enabled ? 'enabled' : 'disabled'}.`,
   },
   simulator: {
     title: 'AI Reminder Simulator',
     subtitle: 'Test AI-generated progressive reminder emails live.',
+    notice: 'This simulator lets you test the generated email copy and latency based on invoice status and escalation tier.',
     selectInvoice: 'Select invoice',
     selectTier: 'Select tier',
     generateReminder: 'Generate Reminder',
@@ -373,6 +462,12 @@ const en: Dictionary = {
     generating: 'AI is generating...',
     latency: 'Response time',
     noInvoiceSelected: 'Please select an invoice and tier.',
+    previewTitle: 'Email Preview',
+    copy: 'Copy',
+    copied: 'Copied',
+    tierPrefix: 'Tier',
+    modelLabel: 'Model: Gemini 1.5 Flash',
+    engineLabel: 'Bilingual AI Engine',
   },
   settings: {
     title: 'Settings',
@@ -384,9 +479,14 @@ const en: Dictionary = {
     emailSignature: 'Email Signature',
     defaultCurrency: 'Default Currency',
     reminderTone: 'Reminder Tone',
-    toneOptions: { gentle: 'Gentle', professional: 'Professional', firm: 'Firm' },
+    toneOptions: {
+      gentle: 'Gentle (Courteous & considerate)',
+      professional: 'Professional (Standard corporate)',
+      firm: 'Firm (Direct & resolute)',
+    },
     save: 'Save',
-    saved: 'Saved!',
+    saved: 'Settings saved successfully!',
+    saving: 'Saving...',
   },
   common: {
     search: 'Search',
@@ -404,6 +504,7 @@ const en: Dictionary = {
     confirm: 'Are you sure?',
     yes: 'Yes',
     no: 'No',
+    signIn: 'Sign In',
   },
 };
 
