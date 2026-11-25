@@ -33,55 +33,47 @@ export function SimulatorPanel({ invoices }: SimulatorPanelProps) {
 
     const startTime = performance.now();
 
-    // Simülasyon gecikmesi (gerçekçi AI motoru gecikmesi)
-    await new Promise((r) => setTimeout(r, 650));
+    try {
+      const res = await fetch('/api/generate-reminder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoice: selectedInvoice,
+          tier: selectedTier,
+          language,
+        }),
+      });
 
-    const endTime = performance.now();
-    const duration = Math.round(endTime - startTime);
-    setLatency(duration);
+      const data = await res.json();
+      const endTime = performance.now();
+      const duration = Math.round(endTime - startTime);
+      setLatency(duration);
 
-    // Kademeli dinamik şablon üretici (Phase 1 yerel prototip; Phase 3'te Gemini API'ye bağlanacak)
-    const clientName = selectedInvoice.clientName;
-    const invoiceNo = selectedInvoice.invoiceNo;
-    const amountStr = formatAmount(selectedInvoice.amount, selectedInvoice.currency);
-    const dueDate = selectedInvoice.dueDate;
-    const payLink = selectedInvoice.paymentLink;
-
-    let subject = '';
-    let body = '';
-
-    if (language === 'tr') {
-      if (selectedTier === 1) {
-        subject = `Ön Bilgilendirme: ${invoiceNo} Numaralı Faturanız (${amountStr})`;
-        body = `Merhaba Sayın ${clientName},\n\nUmarız her şey yolundadır.\n\n${invoiceNo} numaralı ve ${amountStr} tutarındaki faturanızın vadesi ${dueDate} tarihinde dolmaktadır. Ödemelerinizi kolayca planlayabilmeniz adına bu ön hatırlatmayı iletiyoruz.\n\nÖdemenizi aşağıdaki bağlantı üzerinden güvenle gerçekleştirebilirsiniz:\n🔗 ${payLink}\n\nHerhangi bir sorunuz olursa lütfen bize bildirin.\n\nİyi çalışmalar dileriz,\nInvoiceChaser Muhasebe`;
-      } else if (selectedTier === 2) {
-        subject = `Vade Günü Hatırlatması: ${invoiceNo} Nolu Fatura (${amountStr})`;
-        body = `Merhaba Sayın ${clientName},\n\n${invoiceNo} nolu faturanızın vadesi bugün (${dueDate}) dolmuştur.\n\nHesabınızın güncel kalması için ödemenizi gün içerisinde tamamlamanızı rica ederiz.\n\nÖdeme Bağlantısı: ${payLink}\n\nÖdeme yaptıysanız lütfen bu mesajı dikkate almayınız.\n\nSaygılarımızla,\nInvoiceChaser Ekibi`;
-      } else if (selectedTier === 3) {
-        subject = `Önemli Takip: ${invoiceNo} Numaralı Faturanız Gecikmede`;
-        body = `Sayın ${clientName},\n\n${dueDate} vadeli ${invoiceNo} numaralı faturanızın ödemesi henüz sistemimize yansımamıştır.\n\nYoğunluğunuz nedeniyle gözden kaçmış olabileceğini düşündüğümüz için bu hatırlatmayı iletiyoruz.\n\nLütfen aşağıdaki bağlantı üzerinden en kısa sürede ödemenizi tamamlayınız:\n${payLink}\n\nİş birliğiniz için teşekkür ederiz.`;
+      if (data.success && data.result) {
+        setResult({
+          subject: data.result.subject,
+          body: data.result.body,
+        });
       } else {
-        subject = `RESMİ BİLDİRİM: ${invoiceNo} Nolu Gecikmiş Alacak Hakkında`;
-        body = `Sayın ${clientName},\n\n${dueDate} vadeli ve ${amountStr} tutarındaki ${invoiceNo} numaralı faturanız 7 günden uzun süredir gecikmededir.\n\nHizmet sözleşmemiz ve muhasebe mevzuatı gereği yasal takip sürecine girmemek adına, bakiyenin ivedilikle kapatılması gerekmektedir.\n\nDoğrudan Ödeme Linki:\n${payLink}\n\nDekontu bu e-postaya yanıt olarak iletmenizi rica ederiz.\n\nInvoiceChaser Finans & Hukuk Birimi`;
+        throw new Error('API yanıtı geçersiz');
       }
-    } else {
-      if (selectedTier === 1) {
-        subject = `Friendly Reminder: Upcoming Invoice ${invoiceNo} (${amountStr})`;
-        body = `Hi ${clientName},\n\nHope this email finds you well.\n\nThis is a quick courtesy reminder that invoice ${invoiceNo} for ${amountStr} is due on ${dueDate}.\n\nYou can review and pay directly using the secure link below:\n🔗 ${payLink}\n\nLet us know if you have any questions!\n\nBest regards,\nInvoiceChaser Accounts Team`;
-      } else if (selectedTier === 2) {
-        subject = `Due Today: Invoice ${invoiceNo} (${amountStr})`;
-        body = `Hi ${clientName},\n\nInvoice ${invoiceNo} for ${amountStr} is due today (${dueDate}).\n\nPlease complete your payment using this link to keep your account current:\n${payLink}\n\nIf you have already processed this payment, please disregard this note.\n\nThank you,\nInvoiceChaser Team`;
-      } else if (selectedTier === 3) {
-        subject = `Follow-Up: Overdue Invoice ${invoiceNo}`;
-        body = `Dear ${clientName},\n\nWe noticed that payment for invoice ${invoiceNo} (due on ${dueDate}) has not been recorded yet.\n\nWe understand things get busy, so we wanted to bring this to your attention.\n\nPlease process the outstanding amount of ${amountStr} via:\n${payLink}\n\nThank you for your prompt attention.`;
-      } else {
-        subject = `FORMAL NOTICE: Overdue Payment for Invoice ${invoiceNo}`;
-        body = `Dear ${clientName},\n\nYour account shows that invoice ${invoiceNo} for ${amountStr} is now substantially overdue past its due date (${dueDate}).\n\nTo avoid service disruption or escalation, please settle the outstanding balance immediately via:\n${payLink}\n\nKindly forward the payment confirmation upon completion.\n\nSincerely,\nInvoiceChaser Finance & Compliance`;
-      }
+    } catch (err) {
+      // Yerel fallback
+      const endTime = performance.now();
+      setLatency(Math.round(endTime - startTime));
+      const clientName = selectedInvoice.clientName;
+      const invoiceNo = selectedInvoice.invoiceNo;
+      const amountStr = formatAmount(selectedInvoice.amount, selectedInvoice.currency);
+      const dueDate = selectedInvoice.dueDate;
+      const payLink = selectedInvoice.paymentLink;
+
+      setResult({
+        subject: `[Hatırlatma] ${invoiceNo} Nolu Fatura (${amountStr})`,
+        body: `Sayın ${clientName},\n\n${invoiceNo} nolu ve ${amountStr} tutarındaki faturanızın vadesi: ${dueDate}.\n\nÖdeme linki: ${payLink}\n\nİyi çalışmalar,\nInvoiceChaser`,
+      });
+    } finally {
+      setLoading(false);
     }
-
-    setResult({ subject, body });
-    setLoading(false);
   };
 
   const copyToClipboard = () => {
