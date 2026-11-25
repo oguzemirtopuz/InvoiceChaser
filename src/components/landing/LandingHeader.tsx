@@ -7,7 +7,7 @@ import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { Zap, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export function LandingHeader() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/80 px-6 py-4">
@@ -26,6 +26,12 @@ export function LandingHeader() {
 
         <div className="flex items-center gap-3">
           <LanguageToggle />
+          <Link
+            href="/login"
+            className="hidden sm:inline-flex px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            {language === 'tr' ? 'Giriş Yap' : 'Sign In'}
+          </Link>
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/40 transition-all duration-200"

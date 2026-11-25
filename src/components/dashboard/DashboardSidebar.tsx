@@ -97,7 +97,7 @@ export function DashboardSidebar() {
       {/* Logout button */}
       <div className="pt-4 border-t border-slate-800">
         <Link
-          href="/"
+          href="/login"
           className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
         >
           <LogOut className="w-5 h-5" />
