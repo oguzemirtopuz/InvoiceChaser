@@ -3,6 +3,13 @@
 // ============================================================
 
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '..');
 
 console.log('🧪 [InvoiceChaser] Test Süreci Başlatılıyor...\n');
 
@@ -157,6 +164,62 @@ runTest('Resend anahtarı yokken e-posta simülasyonu hatasız sonuç dönmelidi
 runTest('Sıfır veya geçersiz tutar kontrolleri güvenli kalmalıdır', () => {
   const formatted = formatAmount(0, 'TRY');
   assert.ok(formatted.includes('0'));
+});
+
+// ------------------------------------------------------------
+// 6. Otomatik Env-Drift Koruması (Environment Variable Drift Protection)
+// ------------------------------------------------------------
+runTest('src/ altındaki tüm process.env değişkenleri .env.example içinde tanımlı olmalıdır', () => {
+  const envExamplePath = path.join(rootDir, '.env.example');
+  assert.ok(fs.existsSync(envExamplePath), '.env.example dosyası kök dizinde mevcut olmalıdır');
+  
+  const envExampleContent = fs.readFileSync(envExamplePath, 'utf8');
+  const definedEnvKeys = new Set(
+    envExampleContent
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#') && line.includes('='))
+      .map((line) => line.split('=')[0].trim())
+  );
+
+  const srcDir = path.join(rootDir, 'src');
+  const usedEnvKeys = new Set();
+  const envRegex = /process\.env\.([A-Z0-9_]+)/g;
+
+  function scanDir(dir) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        scanDir(fullPath);
+      } else if (/\.(ts|tsx|js|mjs)$/.test(entry.name)) {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        let match;
+        while ((match = envRegex.exec(content)) !== null) {
+          const varName = match[1];
+          // NODE_ENV gibi dahili runtime değişkenlerini hariç tut
+          if (varName !== 'NODE_ENV') {
+            usedEnvKeys.add(varName);
+          }
+        }
+      }
+    }
+  }
+
+  scanDir(srcDir);
+
+  const missingKeys = [];
+  for (const key of usedEnvKeys) {
+    if (!definedEnvKeys.has(key)) {
+      missingKeys.push(key);
+    }
+  }
+
+  assert.equal(
+    missingKeys.length,
+    0,
+    `Şu process.env değişkenleri kodda kullanılmış fakat .env.example içinde tanımlanmamış: ${missingKeys.join(', ')}`
+  );
 });
 
 console.log(`\n📊 Test Sonucu: ${passedTests}/${totalTests} Başarılı (%100)`);

@@ -81,7 +81,7 @@ CREATE INDEX IF NOT EXISTS idx_reminders_invoice_id ON reminders(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_rules_org_id ON reminder_rules(org_id);
 
 -- ============================================================
--- ROW LEVEL SECURITY (RLS) POLİTİKALARI
+-- ROW LEVEL SECURITY (RLS) POLİTİKALARI (%100 Idempotent)
 -- Her kullanıcı sadece kendi organizasyonunun kayıtlarını görebilir
 -- ============================================================
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
@@ -91,11 +91,13 @@ ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reminder_rules ENABLE ROW LEVEL SECURITY;
 
 -- Organizations politikası
+DROP POLICY IF EXISTS "Users can access their own organization" ON organizations;
 CREATE POLICY "Users can access their own organization"
     ON organizations FOR ALL
     USING (auth.uid() = user_id);
 
 -- Invoices politikası
+DROP POLICY IF EXISTS "Users can access their own invoices" ON invoices;
 CREATE POLICY "Users can access their own invoices"
     ON invoices FOR ALL
     USING (
@@ -105,6 +107,7 @@ CREATE POLICY "Users can access their own invoices"
     );
 
 -- Clients politikası
+DROP POLICY IF EXISTS "Users can access their own clients" ON clients;
 CREATE POLICY "Users can access their own clients"
     ON clients FOR ALL
     USING (
@@ -114,6 +117,7 @@ CREATE POLICY "Users can access their own clients"
     );
 
 -- Reminders politikası
+DROP POLICY IF EXISTS "Users can access reminders of their invoices" ON reminders;
 CREATE POLICY "Users can access reminders of their invoices"
     ON reminders FOR ALL
     USING (
@@ -125,6 +129,7 @@ CREATE POLICY "Users can access reminders of their invoices"
     );
 
 -- Rules politikası
+DROP POLICY IF EXISTS "Users can access their own reminder rules" ON reminder_rules;
 CREATE POLICY "Users can access their own reminder rules"
     ON reminder_rules FOR ALL
     USING (
